@@ -1,4 +1,4 @@
-# RamaraoGit
+# TemplateParamScanner.js
 (function () {
   if (mw.config.get("wgAction") !== "view" || mw.config.get("wgNamespaceNumber") < 0) return;
 

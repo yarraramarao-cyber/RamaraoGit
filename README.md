@@ -3,7 +3,7 @@
   if (mw.config.get("wgAction") !== "edit" || mw.config.get("wgNamespaceNumber") < 0) return;
 
   function findDuplicates(wikitext) {
-    const templateRegex = /{{([^{}]*?)}}/gs;
+    const templateRegex = /{{\s*([^{}]+?)\s*}}/gs;
     const ignoreTemplates = ["cite web", "cite news", "cite book", "citation"];
     const result = [];
 
@@ -38,7 +38,6 @@
   function showPopup(dupes) {
     const div = document.createElement("div");
     div.style.cssText = "position:fixed;top:20%;left:50%;transform:translateX(-50%);background:white;padding:20px;max-height:60%;overflow:auto;border:2px solid #888;box-shadow:0 0 10px rgba(0,0,0,0.5);z-index:9999;border-radius:8px;";
-    
     const title = document.createElement("h3");
     title.textContent = "డూప్లికేట్ మూస పేరామితులు";
     div.appendChild(title);
@@ -52,7 +51,6 @@
         p.style.color = "red";
         div.appendChild(p);
       });
-
       const note = document.createElement("p");
       note.style.fontSize = "smaller";
       note.style.marginTop = "10px";
@@ -69,26 +67,32 @@
     document.body.appendChild(div);
   }
 
-  function addButton() {
-    const toolbar = document.querySelector("#wpTextbox1");
-    if (!toolbar) return;
+  function addToolboxButton() {
+    // wikiEditor toolbar fully loaded
+    if (!$('#wpTextbox1').length || !$('#wikiEditor-ui-toolbar').length) return;
 
-    const container = document.createElement("div");
-    container.style.marginTop = "8px";
+    // Avoid duplication
+    if (document.getElementById("check-duplicate-params-button")) return;
 
-    const btn = document.createElement("button");
-    btn.textContent = "Duplicate Parameters";
-    btn.type = "button";
-    btn.className = "mw-ui-button";
-    btn.onclick = () => {
-      const text = document.getElementById("wpTextbox1").value;
-      const dupes = findDuplicates(text);
-      showPopup(dupes);
-    };
+    const $button = $('<button>')
+      .text('Duplicate Parameters')
+      .attr('id', 'check-duplicate-params-button')
+      .css({
+        marginLeft: '5px',
+        padding: '2px 6px',
+        fontSize: '12px'
+      })
+      .on('click', function () {
+        const text = document.getElementById("wpTextbox1").value;
+        const dupes = findDuplicates(text);
+        showPopup(dupes);
+      });
 
-    container.appendChild(btn);
-    toolbar.parentNode.insertBefore(container, toolbar.nextSibling);
+    // Append to main section of wikiEditor
+    $('.wikiEditor-ui-toolbar .group-main').append($button);
   }
 
-  mw.loader.using(["mediawiki.util"], addButton);
+  mw.loader.using('ext.wikiEditor', function () {
+    $(addToolboxButton);
+  });
 })();
